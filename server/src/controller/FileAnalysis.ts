@@ -4,6 +4,7 @@ import { upload } from '../middleware/multer';
 import { createImportMap, extractImports, getFileExtension } from '../utils/fileUtils';
 import { supportedFileTypes } from '../config/consts';
 import { GeminiAPI } from '../api/gemini';
+import { analyseComplexity } from '../api/gemini/prompts';
 
 const router = Router();
 
@@ -31,12 +32,14 @@ router.post('/', upload.array('files'), async (req: Request, res: Response): Pro
 			return { fileName: f.originalname, importMap };
 		});
 
-		console.log(fileImports);
+		const api = new GeminiAPI();
+		const response = await api.queryGeminiAPI(analyseComplexity(JSON.stringify(fileImports)));
 
-		// const api = new GeminiAPI();
-		// const response = await api.queryGeminiAPI('what is typescript');
+		const jsonString = response.data.candidates[0].content.parts[0].text
+			.replace(/^```json\n/, '')
+			.replace(/\n```$/, '');
 
-		// console.log(response.data.candidates[0].content.parts[0]);
+		console.log(jsonString);
 
 		res.status(200).json({ status: 'OK' });
 	} catch (err: unknown) {

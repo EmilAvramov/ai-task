@@ -1,1 +1,1 @@
-export const supportedFileTypes = ['ts'];
+export const supportedFileTypes = ['ts', 'tsx'];

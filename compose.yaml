@@ -1,0 +1,28 @@
+services:
+  react:
+    container_name: frontend
+    hostname: localhost
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - 3000:3000
+    volumes:
+      - ./client:/usr/src/client
+    command: npm run start
+
+  express:
+    container_name: backend
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - 8080:8080
+    environment:
+      NODE_ENV: production
+      SERVER_PORT: 8080
+    volumes:
+      - ./server:/usr/src/server
+    command: npm run dev

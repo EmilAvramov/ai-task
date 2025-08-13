@@ -1,6 +1,18 @@
 import { GoogleGenAI } from '@google/genai';
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 
+interface GeminiApiResponse {
+	candidates: Answer[];
+}
+
+interface Answer {
+	content: {
+		parts: [{ text: string }];
+	};
+	modelVersion: string;
+	responseId: string;
+}
+
 export class GeminiAPI {
 	client: AxiosInstance;
 
@@ -37,7 +49,7 @@ export class GeminiAPI {
 		return instance;
 	};
 
-	queryGeminiAPI = async (text: string): Promise<AxiosResponse> => {
+	queryGeminiAPI = async (text: string): Promise<AxiosResponse<GeminiApiResponse>> => {
 		return await this.client.post('gemini-2.0-flash:generateContent', {
 			contents: [
 				{

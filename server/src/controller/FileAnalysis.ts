@@ -7,25 +7,31 @@ import { GeminiAPI } from '../api/gemini';
 
 const router = Router();
 
-router.post('/', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
+router.post('/', upload.array('files'), async (req: Request, res: Response): Promise<void> => {
 	try {
-		const file = req.file;
-		if (!file) {
-			res.status(400).json({ error: 'File not provided' });
+		const files = req.files as Express.Multer.File[] | undefined;
+
+		if (!files?.length) {
+			res.status(400).json({ error: 'Files not provided' });
 			return;
 		}
 
-		const extType = getFileExtension(file.originalname);
-		if (!extType || !supportedFileTypes.includes(extType)) {
-			res.status(400).json({ error: 'File type not supported' });
+		const allFilesSupported = files.every((file) => {
+			const extType = getFileExtension(file.originalname);
+			return extType && supportedFileTypes.includes(extType);
+		});
+		if (!allFilesSupported) {
+			res.status(400).json({ error: 'Not all file types provided are supported' });
 			return;
 		}
 
-		const contents = file.buffer.toString('utf-8');
+		const fileImports = files.map((f) => {
+			const contents = f.buffer.toString('utf-8');
+			const importMap = createImportMap(extractImports(f.originalname, contents));
+			return { fileName: f.originalname, importMap };
+		});
 
-		const importMap = createImportMap(extractImports(file.filename, contents));
-
-		console.log(importMap);
+		console.log(fileImports);
 
 		// const api = new GeminiAPI();
 		// const response = await api.queryGeminiAPI('what is typescript');
@@ -34,6 +40,7 @@ router.post('/', upload.single('file'), async (req: Request, res: Response): Pro
 
 		res.status(200).json({ status: 'OK' });
 	} catch (err: unknown) {
+		console.log(err);
 		res.status(400).json({ status: 'Error' });
 	}
 });

@@ -2,18 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { AnalysisAPI } from '../api';
 
 export const Home = (): React.JSX.Element => {
-	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 	const [api, setApi] = useState<AnalysisAPI | null>(null);
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		if (event.target.files?.length) {
-			setSelectedFile(event.target.files[0]);
+		const files = event.target.files;
+		if (files?.length) {
+			setSelectedFiles(Array.from(files));
 		}
 	};
 
 	const handleFileUpload = async () => {
-		if (!selectedFile) {
-			alert('Please select a file first');
+		if (!selectedFiles.length) {
+			alert('Please select at least one file first');
 			return;
 		}
 
@@ -21,8 +22,12 @@ export const Home = (): React.JSX.Element => {
 
 		try {
 			const formData = new FormData();
-			formData.append('file', selectedFile);
-			const response = await api.getAnalysis(formData);
+
+			selectedFiles.forEach((file) => {
+				formData.append('files', file);
+			});
+
+			await api.getAnalysis(formData);
 		} catch (e) {
 			console.log(e);
 		}
@@ -48,9 +53,10 @@ export const Home = (): React.JSX.Element => {
 			<div>
 				<input
 					type='file'
+					multiple
 					onChange={handleFileChange}
 				/>
-				<button onClick={handleFileUpload}>Upload File</button>
+				<button onClick={handleFileUpload}>Upload Files</button>
 			</div>
 		</main>
 	);

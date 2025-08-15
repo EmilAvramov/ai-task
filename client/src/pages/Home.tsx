@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnalysisAPI } from '../api';
+import { FileAnalysis } from '@types-http-api';
+import { FileAnalysisList } from '../components/FileAnalysisList';
 
 export const Home = (): React.JSX.Element => {
 	const fileSelectRef = useRef<HTMLInputElement | null>(null);
 	const [api, setApi] = useState<AnalysisAPI | null>(null);
+	const [analysis, setAnalysis] = useState<FileAnalysis[]>([]);
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const ref = fileSelectRef.current;
@@ -31,7 +34,8 @@ export const Home = (): React.JSX.Element => {
 				formData.append('files', file);
 			});
 
-			await api.getAnalysis(formData);
+			const response = await api.getAnalysis(formData);
+			setAnalysis(response.data.data);
 			selectoRef.value = '';
 		} catch (e) {
 			console.log(e);
@@ -64,6 +68,7 @@ export const Home = (): React.JSX.Element => {
 				/>
 				<button onClick={handleFileUpload}>Upload Files</button>
 			</div>
+			{analysis.length > 0 ? <FileAnalysisList fileList={analysis} /> : <></>}
 		</main>
 	);
 };

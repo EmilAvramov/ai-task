@@ -1,9 +1,20 @@
 declare module '@types-http-api' {
 	interface ServerStatusResponse {
-		status: 'healthy' | 'not healthy';
+		status: 'OK' | 'Error';
 	}
 
-	interface AnalysisResponse {
-		data: string;
+	interface AnalysisResponse extends ServerStatusResponse {
+		data: FileAnalysis[];
+	}
+
+	interface FileAnalysis {
+		fileName: string;
+		analysis: Analysis[];
+	}
+
+	interface Analysis {
+		name: string;
+		score: number;
+		recommendation: string;
 	}
 }

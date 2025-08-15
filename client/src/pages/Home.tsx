@@ -1,19 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AnalysisAPI } from '../api';
 
 export const Home = (): React.JSX.Element => {
-	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+	const fileSelectRef = useRef<HTMLInputElement | null>(null);
 	const [api, setApi] = useState<AnalysisAPI | null>(null);
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const files = event.target.files;
-		if (files?.length) {
-			setSelectedFiles(Array.from(files));
+		const ref = fileSelectRef.current;
+
+		if (ref) {
+			ref.files = event.target.files;
 		}
 	};
 
 	const handleFileUpload = async () => {
-		if (!selectedFiles.length) {
+		const selectoRef = fileSelectRef.current;
+
+		if (!selectoRef?.files?.length) {
 			alert('Please select at least one file first');
 			return;
 		}
@@ -23,11 +26,13 @@ export const Home = (): React.JSX.Element => {
 		try {
 			const formData = new FormData();
 
-			selectedFiles.forEach((file) => {
+			console.log(selectoRef.files);
+			Array.from(selectoRef.files).forEach((file) => {
 				formData.append('files', file);
 			});
 
 			await api.getAnalysis(formData);
+			selectoRef.value = '';
 		} catch (e) {
 			console.log(e);
 		}
@@ -38,7 +43,7 @@ export const Home = (): React.JSX.Element => {
 			const initAPI = async () => {
 				const backendAPI = new AnalysisAPI();
 				const res = await backendAPI.getServerStatus();
-				if (res.data.status === 'healthy') {
+				if (res.data.status === 'OK') {
 					setApi(backendAPI);
 				} else {
 					alert('Failed to connect to backend server');
@@ -52,6 +57,7 @@ export const Home = (): React.JSX.Element => {
 		<main>
 			<div>
 				<input
+					ref={fileSelectRef}
 					type='file'
 					multiple
 					onChange={handleFileChange}

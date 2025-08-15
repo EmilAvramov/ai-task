@@ -1,17 +1,22 @@
 export const analyseComplexity = (data: string) => {
 	return `
-        Analyse the complexity of the following Typescript imports: ${data}.
+        Task: 
+        Analyze the provided Typescript imports based on the below criteria.
+        Consider the imports for each file, but also consider how they interact with each other.
+
+        Input: ${data}
         
-        Criteria:
-            - Dependency complexity
-            - Circular dependencies
-            - Tightly coupled modules
+        Evaluation Criteria:
+            - Dependency complexity (30% weight)
+            - Circular dependencies (40% weight)
+            - Tightly coupled modules (30% weight)
 
-        Employ a grading scale from 1 to 10 - 10 loosely coupled code with no circular deps
-        and low dependency complexity and 1 being poor code with circular dependencies that is tightly coupled and
-        with high dependency complexity
+        Grading Guidelines: 
+            - 1-3 (Poor): High complexity, circular dependencies, tight coupling.
+            - 4-6 (Moderate): No circular dependencies, some issues with complexity and coupling.
+            - 7-10 (Good): No circular depedencies, minimal issues, well-structured.
 
-        Provide possible refactoring recommendations on each point with one sentence.
+        Provide refactoring recommendations on each point with one actionable sentence.
 
         Return only a JSON with an array of these objects:
         {

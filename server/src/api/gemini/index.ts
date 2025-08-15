@@ -50,7 +50,7 @@ export class GeminiAPI {
 	};
 
 	queryGeminiAPI = async (text: string): Promise<AxiosResponse<GeminiApiResponse>> => {
-		return await this.client.post('gemini-2.0-flash:generateContent', {
+		return await this.client.post('gemini-2.5-flash:generateContent', {
 			contents: [
 				{
 					parts: [

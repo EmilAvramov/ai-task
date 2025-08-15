@@ -39,9 +39,7 @@ router.post('/', upload.array('files'), async (req: Request, res: Response): Pro
 			.replace(/^```json\n/, '')
 			.replace(/\n```$/, '');
 
-		console.log(jsonString);
-
-		res.status(200).json({ status: 'OK' });
+		res.status(200).json({ data: JSON.parse(jsonString), status: 'OK' });
 	} catch (err: unknown) {
 		console.log(err);
 		res.status(400).json({ status: 'Error' });

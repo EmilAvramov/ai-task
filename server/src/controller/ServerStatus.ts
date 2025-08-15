@@ -5,9 +5,9 @@ const router = Router();
 
 router.get('/', (req: Request, res: Response): void => {
 	try {
-		res.status(200).json({ status: 'healthy' });
+		res.status(200).json({ status: 'OK' });
 	} catch (err: unknown) {
-		res.status(400).json({ status: 'not healthy' });
+		res.status(400).json({ status: 'Error' });
 	}
 });
 

@@ -5,6 +5,7 @@ import { createImportMap, extractImports, getFileExtension } from '../utils/file
 import { GeminiAPI } from '../api/gemini';
 import { analyseComplexity } from '../api/gemini/prompts';
 import { scriptMap } from '../config/consts';
+import { FileImports } from '@types-parser-helpers';
 
 const router = Router();
 
@@ -26,7 +27,7 @@ router.post('/', upload.array('files'), async (req: Request, res: Response): Pro
 			return;
 		}
 
-		const fileImports = files.map((f) => {
+		const fileImports: FileImports[] = files.map((f) => {
 			const contents = f.buffer.toString('utf-8');
 			const importMap = createImportMap(extractImports(f.originalname, contents));
 			return { fileName: f.originalname, importMap };

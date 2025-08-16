@@ -23,6 +23,8 @@ services:
     environment:
       NODE_ENV: production
       SERVER_PORT: 8080
+      GEMINI_BASE_URL: https://generativelanguage.googleapis.com/v1beta/models
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     volumes:
       - ./server:/usr/src/server
     command: npm run dev

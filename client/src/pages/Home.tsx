@@ -6,7 +6,9 @@ import { FileAnalysisList } from '../components/FileAnalysisList';
 export const Home = (): React.JSX.Element => {
 	const fileSelectRef = useRef<HTMLInputElement | null>(null);
 	const [api, setApi] = useState<AnalysisAPI | null>(null);
-	const [analysis, setAnalysis] = useState<FileAnalysis[]>([]);
+	const [llmAnalysis, setLLMAnalysis] = useState<FileAnalysis[]>([]);
+	const [heuristicAnalysis, setHeuristicAnalysis] = useState<FileAnalysis[]>([]);
+	const [loading, setLoading] = useState(false);
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const ref = fileSelectRef.current;
@@ -17,6 +19,7 @@ export const Home = (): React.JSX.Element => {
 	};
 
 	const handleFileUpload = async () => {
+		setLoading(true);
 		const selectoRef = fileSelectRef.current;
 
 		if (!selectoRef?.files?.length) {
@@ -35,11 +38,13 @@ export const Home = (): React.JSX.Element => {
 			});
 
 			const response = await api.getAnalysis(formData);
-			setAnalysis(response.data.data);
+			setLLMAnalysis(response.data.data.llm);
+			setHeuristicAnalysis(response.data.data.heuristic);
 			selectoRef.value = '';
 		} catch (e) {
 			console.log(e);
 		}
+		setLoading(false);
 	};
 
 	useEffect(() => {
@@ -59,16 +64,39 @@ export const Home = (): React.JSX.Element => {
 
 	return (
 		<main>
-			<div>
+			<div className='input-container'>
 				<input
 					ref={fileSelectRef}
 					type='file'
 					multiple
 					onChange={handleFileChange}
+					disabled={loading}
 				/>
-				<button onClick={handleFileUpload}>Upload Files</button>
+				<button
+					disabled={loading}
+					onClick={handleFileUpload}
+				>
+					{loading ? 'Loading...' : 'Upload Files'}
+				</button>
 			</div>
-			{analysis.length > 0 ? <FileAnalysisList fileList={analysis} /> : <></>}
+			<div className='content-container'>
+				{llmAnalysis.length > 0 ? (
+					<FileAnalysisList
+						fileList={llmAnalysis}
+						source='Gemini 2.5 LLM'
+					/>
+				) : (
+					<></>
+				)}
+				{heuristicAnalysis.length > 0 ? (
+					<FileAnalysisList
+						fileList={heuristicAnalysis}
+						source='Heuristic'
+					/>
+				) : (
+					<></>
+				)}
+			</div>
 		</main>
 	);
 };

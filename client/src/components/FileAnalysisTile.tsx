@@ -6,13 +6,20 @@ interface FileAnalysisTileProps {
 
 export const FileAnalysisTile: React.FC<FileAnalysisTileProps> = ({ file }) => {
 	return (
-		<div>
-			<p>File Name: {file.fileName}</p>
+		<div className='section-container'>
+			<p className='section-header'>File Name: {file.fileName}</p>
 			{file.analysis.map((a) => (
-				<div>
-					<p>Analysis Type: {a.name}</p>
-					<p>Recommendation: {a.recommendation}</p>
-					<p>Score: {a.score}</p>
+				<div className='section-details'>
+					<p>
+						<strong>Analysis Type:</strong> {a.name}
+					</p>
+					<p>
+						<strong>Recommendation:</strong> {a.recommendation}
+					</p>
+					<p>
+						<strong>Score:</strong> {a.score}
+					</p>
+					<hr />
 				</div>
 			))}
 		</div>

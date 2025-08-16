@@ -48,7 +48,7 @@ const processRawAnalysis = (analysis: RawAnalysis[]): FileAnalysis[] => {
 
 		fileAnalysis.push({
 			fileName: rawAnalysis.fileName,
-			analysis: [circularDepsAnalysis, couplingAnalysis, dependencyAnalysis],
+			analysis: [dependencyAnalysis, circularDepsAnalysis, couplingAnalysis],
 		});
 	});
 

@@ -2,9 +2,9 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { upload } from '../middleware/multer';
 import { createImportMap, extractImports, getFileExtension } from '../utils/fileUtils';
-import { supportedFileTypes } from '../config/consts';
 import { GeminiAPI } from '../api/gemini';
 import { analyseComplexity } from '../api/gemini/prompts';
+import { scriptMap } from '../config/consts';
 
 const router = Router();
 
@@ -19,7 +19,7 @@ router.post('/', upload.array('files'), async (req: Request, res: Response): Pro
 
 		const allFilesSupported = files.every((file) => {
 			const extType = getFileExtension(file.originalname);
-			return extType && supportedFileTypes.includes(extType);
+			return extType && Object.keys(scriptMap).includes(extType);
 		});
 		if (!allFilesSupported) {
 			res.status(400).json({ error: 'Not all file types provided are supported' });

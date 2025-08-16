@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { upload } from '../middleware/multer';
-import { createImportMap, extractImports, getFileExtension } from '../utils/fileUtils';
+import { extractImports, getFileExtension } from '../utils/fileUtils';
 import { GeminiAPI } from '../api/gemini';
 import { analyseComplexity } from '../api/gemini/prompts';
 import { scriptMap } from '../config/consts';
@@ -29,7 +29,7 @@ router.post('/', upload.array('files'), async (req: Request, res: Response): Pro
 
 		const fileImports: FileImports[] = files.map((f) => {
 			const contents = f.buffer.toString('utf-8');
-			const importMap = createImportMap(extractImports(f.originalname, contents));
+			const importMap = extractImports(f.originalname, contents);
 			return { fileName: f.originalname, importMap };
 		});
 

@@ -18,6 +18,8 @@ export const analyseComplexity = (data: string) => {
 
         Provide refactoring recommendations on each point with one actionable sentence.
 
+        Ignore TS imports that import only as a type (e.g. { type Axios }) for the analysis.
+
         Return only a JSON with an array of these objects:
         {
             fileName: string

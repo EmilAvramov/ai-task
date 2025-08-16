@@ -4,7 +4,10 @@ declare module '@types-http-api' {
 	}
 
 	interface AnalysisResponse extends ServerStatusResponse {
-		data: FileAnalysis[];
+		data: {
+			llm: FileAnalysis[];
+			heuristic: FileAnalysis[];
+		};
 	}
 
 	interface FileAnalysis {

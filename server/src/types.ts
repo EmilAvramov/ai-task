@@ -27,6 +27,11 @@ declare module '@types-parser-helpers' {
 		fileName: string;
 		dependencyCount: number;
 		couplingMap: Map<string, number>;
-		circularDependencies: number;
+		circularDependencies: CircularDependencyRaw;
+	}
+
+	interface CircularDependencyRaw {
+		count: number;
+		between: string[][];
 	}
 }

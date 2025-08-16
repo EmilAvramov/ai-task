@@ -1,10 +1,21 @@
 import type {
 	Analysis,
+	CircularDependencyRaw,
 	FileAnalysis,
 	FileImports,
 	NormalizedImport,
 	RawAnalysis,
 } from '@types-parser-helpers';
+import {
+	circularDependencyRecommendation,
+	couplingRecommendationGood,
+	couplingRecommendationModerate,
+	couplingRecommendationPoor,
+	dependencyComplexityRecommendationGood,
+	dependencyComplexityRecommendationModerate,
+	dependencyComplexityRecommendationPoor,
+	normalizeString,
+} from './string';
 
 export const analyseFileImports = (fileImports: FileImports[]): FileAnalysis[] => {
 	const rawAnalysis: RawAnalysis[] = [];
@@ -30,6 +41,11 @@ const processRawAnalysis = (analysis: RawAnalysis[]): FileAnalysis[] => {
 
 	analysis.forEach((rawAnalysis) => {
 		const { circularDepsAnalysis, couplingAnalysis, dependencyAnalysis } = getAnalysisTemplates();
+
+		processRawDependencyComplexityAnalysis(rawAnalysis.dependencyCount, dependencyAnalysis);
+		processRawCircularDependencyAnalysis(rawAnalysis.circularDependencies, circularDepsAnalysis);
+		processRawCouplingAnalysis(rawAnalysis.couplingMap, couplingAnalysis);
+
 		fileAnalysis.push({
 			fileName: rawAnalysis.fileName,
 			analysis: [circularDepsAnalysis, couplingAnalysis, dependencyAnalysis],
@@ -63,8 +79,87 @@ const getAnalysisTemplates = (): {
 	return { dependencyAnalysis, couplingAnalysis, circularDepsAnalysis };
 };
 
-const normalizeString = (input: string) =>
-	input.replace(/\'/g, '').replace('./', '').replace('.ts', '').replace('.js', '');
+const processRawCircularDependencyAnalysis = (
+	rawAnalysis: RawAnalysis['circularDependencies'],
+	template: Analysis
+): void => {
+	const circulatDepCount = rawAnalysis.count;
+	const circularScoreSubtraction = circulatDepCount * 3;
+
+	if (circularScoreSubtraction > 0) {
+		template.score -= circularScoreSubtraction;
+		template.recommendation = circularDependencyRecommendation(
+			rawAnalysis.between.map((s) => s.join(' <-> '))
+		);
+	}
+
+	if (template.score < 0) {
+		template.score = 0;
+	}
+};
+
+const processRawDependencyComplexityAnalysis = (
+	rawAnalysis: RawAnalysis['dependencyCount'],
+	template: Analysis
+): void => {
+	const dependencyComplexitySubtraction = rawAnalysis * 1; // for clarity of scoring
+
+	const recommendationHandlers = [
+		{ max: 3, handler: (count: number) => dependencyComplexityRecommendationGood(count) },
+		{ max: 6, handler: (count: number) => dependencyComplexityRecommendationModerate(count) },
+		{ max: 99, handler: (count: number) => dependencyComplexityRecommendationPoor(count) },
+	];
+
+	if (dependencyComplexitySubtraction > 0) {
+		template.score -= dependencyComplexitySubtraction;
+		for (const { max, handler } of recommendationHandlers) {
+			if (dependencyComplexitySubtraction <= max) {
+				template.recommendation = handler(rawAnalysis);
+				break;
+			}
+		}
+	}
+
+	if (template.score < 0) {
+		template.score = 0;
+	}
+};
+
+const processRawCouplingAnalysis = (
+	rawAnalysis: RawAnalysis['couplingMap'],
+	template: Analysis
+) => {
+	let couplingSubtractionScore: number = Array.from(rawAnalysis.values()).reduce((a, c) => {
+		if (a > 1) {
+			c += a * 2;
+		}
+		return c;
+	}, 0);
+
+	if (Array.from(rawAnalysis.keys()).length > 3) {
+		couplingSubtractionScore += 3;
+	}
+
+	const recommendationHandlers = [
+		{ max: 3, handler: () => couplingRecommendationGood() },
+		{ max: 6, handler: () => couplingRecommendationModerate() },
+		{ max: 99, handler: () => couplingRecommendationPoor() },
+	];
+
+	if (couplingSubtractionScore > 0) {
+		template.score -= couplingSubtractionScore;
+		for (const { max, handler } of recommendationHandlers) {
+			if (couplingSubtractionScore <= max) {
+				template.recommendation = handler();
+				break;
+			}
+		}
+	}
+
+	if (template.score < 0) {
+		template.score = 0;
+	}
+};
 
 const getCouplingMap = (importMap: NormalizedImport[]): Map<string, number> => {
 	const couplingMap = new Map<string, number>();
@@ -84,9 +179,13 @@ const getCouplingMap = (importMap: NormalizedImport[]): Map<string, number> => {
 const getCircularDependencies = (
 	sourceFileImport: FileImports,
 	fileImports: FileImports[]
-): number => {
-	let circularDependencies = 0;
+): CircularDependencyRaw => {
+	let circularDepRawData: CircularDependencyRaw = {
+		count: 0,
+		between: [],
+	};
 
+	const normalizedSourceName = normalizeString(sourceFileImport.fileName);
 	const dependantModules = sourceFileImport.importMap.map(({ module: moduleName }) =>
 		normalizeString(moduleName)
 	);
@@ -100,9 +199,10 @@ const getCircularDependencies = (
 			normalizeString(moduleName)
 		);
 		if (innerDeps.includes(normalizeString(sourceFileImport.fileName))) {
-			circularDependencies += 1;
+			circularDepRawData.count += 1;
+			circularDepRawData.between.push([normalizedSourceName, normalizedName]);
 		}
 	}
 
-	return circularDependencies;
+	return circularDepRawData;
 };

@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { upload } from '../middleware/multer';
-import { extractImports, getFileExtension } from '../utils/fileUtils';
+import { extractImports, getFileExtension } from '../utils/file';
 import { GeminiAPI } from '../api/gemini';
 import { analyseComplexity } from '../api/gemini/prompts';
 import { scriptMap } from '../config/consts';
 import { FileImports } from '@types-parser-helpers';
+import { analyseFileImports } from '../utils/analysis';
 
 const router = Router();
 
@@ -33,6 +34,8 @@ router.post('/', upload.array('files'), async (req: Request, res: Response): Pro
 			return { fileName: f.originalname, importMap };
 		});
 
+		const heuristicAnalysis = analyseFileImports(fileImports);
+
 		const api = new GeminiAPI();
 		const response = await api.queryGeminiAPI(analyseComplexity(JSON.stringify(fileImports)));
 
@@ -40,7 +43,9 @@ router.post('/', upload.array('files'), async (req: Request, res: Response): Pro
 			.replace(/^```json\n/, '')
 			.replace(/\n```$/, '');
 
-		res.status(200).json({ data: JSON.parse(jsonString), status: 'OK' });
+		res
+			.status(200)
+			.json({ data: { llm: JSON.parse(jsonString), heuristic: heuristicAnalysis }, status: 'OK' });
 	} catch (err: unknown) {
 		console.log(err);
 		res.status(400).json({ status: 'Error' });

@@ -11,4 +11,15 @@ declare module '@types-parser-helpers' {
 	}
 
 	type ImportCandidate = ts.ImportDeclaration | ts.CallExpression;
+
+	interface FileAnalysis {
+		fileName: string;
+		analysis: Analysis[];
+	}
+
+	interface Analysis {
+		name: 'dependencies' | 'circular' | 'coupling';
+		score: number;
+		recommendation: string;
+	}
 }

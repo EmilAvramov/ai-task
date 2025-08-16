@@ -13,7 +13,7 @@ declare module '@types-http-api' {
 	}
 
 	interface Analysis {
-		name: string;
+		name: 'dependencies' | 'circular' | 'coupling';
 		score: number;
 		recommendation: string;
 	}

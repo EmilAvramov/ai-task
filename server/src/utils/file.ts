@@ -1,6 +1,6 @@
 import ts from 'typescript';
-import { compileSourceFile, processCallExpression, processESImport } from './astUtils';
-import { ImportCandidate, NormalizedImport } from '@types-parser-helpers';
+import { compileSourceFile, processCallExpression, processESImport } from './ast';
+import type { NormalizedImport } from '@types-parser-helpers';
 
 export const getFileExtension = (fileName: string): string | null => {
 	const lastDotIndex = fileName.lastIndexOf('.');

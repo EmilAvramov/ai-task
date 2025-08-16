@@ -1,4 +1,4 @@
-import { NormalizedImport } from '@types-parser-helpers';
+import type { NormalizedImport } from '@types-parser-helpers';
 import ts from 'typescript';
 import { scriptMap } from '../config/consts';
 
@@ -35,8 +35,9 @@ export const processCallExpression = (node: ts.CallExpression): NormalizedImport
 			}
 		}
 	}
+
 	return {
 		module,
-		import: bindings.join(','),
+		import: bindings.join(', '),
 	};
 };

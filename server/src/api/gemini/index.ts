@@ -20,6 +20,10 @@ export class GeminiAPI {
 		this.client = this.init();
 	}
 
+	/**
+	 * Responsible for initializing the client with its configuration
+	 * Setting the content type and adding an interceptor for error handling
+	 */
 	private init = () => {
 		const baseUrl = process.env.GEMINI_BASE_URL;
 		const apiKey = process.env.GEMINI_API_KEY;
@@ -49,6 +53,11 @@ export class GeminiAPI {
 		return instance;
 	};
 
+	/**
+	 * Calls the google generative API with a text (representing a prompt)
+	 * Note that the API version can be changed (e.g. to gemini-2.0-flash)
+	 * as permissive by the API Key
+	 */
 	queryGeminiAPI = async (text: string): Promise<AxiosResponse<GeminiApiResponse>> => {
 		return await this.client.post('gemini-2.5-flash:generateContent', {
 			contents: [

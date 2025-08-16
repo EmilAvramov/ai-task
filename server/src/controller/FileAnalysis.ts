@@ -10,6 +10,13 @@ import { analyseFileImports } from '../utils/analysis';
 
 const router = Router();
 
+/**
+ * Takes an array of files with the key 'files'
+ * and returns an LLM and a heuristic analysis for those files in respect to
+ * dependency complexity, circular dependencies and module coupling
+ * Will reject requests where not all files comply with the required format
+ * or if not files are provided
+ */
 router.post('/', upload.array('files'), async (req: Request, res: Response): Promise<void> => {
 	try {
 		const files = req.files as Express.Multer.File[] | undefined;
@@ -48,7 +55,7 @@ router.post('/', upload.array('files'), async (req: Request, res: Response): Pro
 			.json({ data: { llm: JSON.parse(jsonString), heuristic: heuristicAnalysis }, status: 'OK' });
 	} catch (err: unknown) {
 		console.log(err);
-		res.status(400).json({ status: 'Error' });
+		res.status(500).json({ status: 'Error' });
 	}
 });
 

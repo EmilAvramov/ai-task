@@ -17,6 +17,12 @@ import {
 	normalizeString,
 } from './string';
 
+/**
+ * Receives the file imports to be analysed and compiles the raw analysis for each file
+ * by calling the respective helper
+ * Before returning the result, calls the function responsible for parsing the raw
+ * analysis in order to return it in a standardized format
+ */
 export const analyseFileImports = (fileImports: FileImports[]): FileAnalysis[] => {
 	const rawAnalysis: RawAnalysis[] = [];
 
@@ -36,6 +42,10 @@ export const analyseFileImports = (fileImports: FileImports[]): FileAnalysis[] =
 	return processRawAnalysis(rawAnalysis);
 };
 
+/**
+ * Receives the raw analysis objects, retrieves their templates and
+ * calls the respective processing functions to handle finalizing the analysis
+ */
 const processRawAnalysis = (analysis: RawAnalysis[]): FileAnalysis[] => {
 	const fileAnalysis: FileAnalysis[] = [];
 
@@ -55,6 +65,10 @@ const processRawAnalysis = (analysis: RawAnalysis[]): FileAnalysis[] => {
 	return fileAnalysis;
 };
 
+/**
+ * Provides a template for the 3 types of analysis
+ * These are the default values that will be modified later
+ */
 const getAnalysisTemplates = (): {
 	dependencyAnalysis: Analysis;
 	couplingAnalysis: Analysis;
@@ -79,6 +93,14 @@ const getAnalysisTemplates = (): {
 	return { dependencyAnalysis, couplingAnalysis, circularDepsAnalysis };
 };
 
+/** @MODIFYING
+ * Handles taking the raw analysis data for circular dependencies,
+ * calculating the file's score and calling the recommendation helper
+ *
+ * Each circular dependency penalizes the template's base score of 10 by 3.
+ * Circular dependency relations will be provided by the string helper.
+ * If the score goes below 0, it is offset to 0.
+ */
 const processRawCircularDependencyAnalysis = (
 	rawAnalysis: RawAnalysis['circularDependencies'],
 	template: Analysis
@@ -97,7 +119,14 @@ const processRawCircularDependencyAnalysis = (
 		template.score = 0;
 	}
 };
-
+/** @MODIFYING
+ * Handles taking the raw analysis data for dependency complexity,
+ * calculating the file's score and calling the recommendation helper
+ *
+ * Each dependency in the file penalizes the template's base score of 10 by 1.
+ * A different recommendation is given based on the score.
+ * If the score goes below 0, it is offset to 0.
+ */
 const processRawDependencyComplexityAnalysis = (
 	rawAnalysis: RawAnalysis['dependencyCount'],
 	template: Analysis
@@ -125,6 +154,16 @@ const processRawDependencyComplexityAnalysis = (
 	}
 };
 
+/** @MODIFYING
+ * Handles taking the raw analysis data for coupling,
+ * calculating the file's score and calling the recommendation helper
+ *
+ * Imports from each file that are more than 1 will penalize the template's base score of 10
+ * by the import count * 2 (3 imports would be penalized by 6).
+ * If the file imports from more than 3 files, it will be penalized by an additional 3 points.
+ * A different recommendation is given based on the score.
+ * If the score goes below 0, it is offset to 0.
+ */
 const processRawCouplingAnalysis = (
 	rawAnalysis: RawAnalysis['couplingMap'],
 	template: Analysis
@@ -161,6 +200,11 @@ const processRawCouplingAnalysis = (
 	}
 };
 
+/**
+ * Responsible for taking the import map, normalizing import rates and
+ * creating a map where each key is the file imported from and the value is the
+ * number of imports from that file.
+ */
 const getCouplingMap = (importMap: NormalizedImport[]): Map<string, number> => {
 	const couplingMap = new Map<string, number>();
 
@@ -176,6 +220,12 @@ const getCouplingMap = (importMap: NormalizedImport[]): Map<string, number> => {
 	return couplingMap;
 };
 
+/**
+ * Responsible for capturing circular dependencies between file by matching their
+ * normalized names. For each file, all files where it imports from will be
+ * traversed and it will be identified whether the imported file also imports the original
+ * one, therefore creating a potential circular dependency.
+ */
 const getCircularDependencies = (
 	sourceFileImport: FileImports,
 	fileImports: FileImports[]

@@ -22,4 +22,11 @@ declare module '@types-parser-helpers' {
 		score: number;
 		recommendation: string;
 	}
+
+	interface RawAnalysis {
+		fileName: string;
+		dependencyCount: number;
+		couplingMap: Map<string, number>;
+		circularDependencies: number;
+	}
 }

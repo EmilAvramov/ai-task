@@ -21,23 +21,27 @@ export const processESImport = (node: ts.ImportDeclaration): NormalizedImport =>
 
 export const processCallExpression = (node: ts.CallExpression): NormalizedImport => {
 	const module = node.arguments[0].getText();
-	const bindings: string[] = [];
+	let binding = '';
 
 	if (ts.isVariableDeclaration(node.parent)) {
 		const declaration = node.parent.name;
 		if (ts.isIdentifier(declaration)) {
-			bindings.push(declaration.getText());
+			binding = declaration.getText();
 		} else if (ts.isObjectBindingPattern(declaration)) {
+			const rawBindings = [];
 			for (const el of declaration.elements) {
 				if (ts.isBindingElement(el)) {
-					bindings.push(el.name.getText());
+					rawBindings.push(el.name.getText());
 				}
+			}
+			if (rawBindings.length) {
+				binding = `{ ${rawBindings.join(', ')} }`;
 			}
 		}
 	}
 
 	return {
 		module,
-		import: bindings.join(', '),
+		import: binding,
 	};
 };
